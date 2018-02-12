@@ -18,9 +18,8 @@ File.open(LOGFILE, 'a') { |f| f.puts results }
 def check_minimum(variety, raw_value, threshold)
   users = NOTIFY_USERNAMES.map { |r| "@#{r}" }.join(' ')
 
-  float_value = (raw_value.to_f * 100).floor / 100.0
-  mb_value = float_value / 1_000_000
-  value = mb_value.truncate 2
+  mb_value = raw_value.to_f / 1_000_000
+  value = (mb_value * 100).floor / 100.0
 
   msg = "Warning - #{variety} speed of #{value}Mb/sec is under the " \
         "minimum threshold of #{threshold}."
