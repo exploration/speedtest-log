@@ -7,9 +7,9 @@ def dir
   File.dirname(__FILE__)
 end
 
-LOGFILE = "#{dir}/log/speedtest.log"
 DOWNLOAD_MINIMUM_MB = 40
 UPLOAD_MINIMUM_MB = 20
+LOGFILE = "#{dir}/log/speedtest.log"
 NOTIFY_USERNAMES = %w[Eric Donald].freeze
 
 results = `#{dir}/bin/speedtest-cli --csv`
