@@ -6,4 +6,4 @@
 
 1. Run `sh setup.sh`, which will create any necessary folders and download any necessary scripts.
 2. Edit `bin/hipchat` to include your API keys, and room numbers etc.
-3. There is no step 3. You can run `ruby speedtest-log.rb` or just `speedtest-log.rb` now.
+3. There is no step 3. You can run `ruby run_tests.rb` or just `run_tests.rb` now.
