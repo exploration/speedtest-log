@@ -16,6 +16,18 @@ LOGFILE = "#{dir}/log/speedtest.log"
 # These are chat service short-handles (eg HipChat)
 NOTIFY_USERNAMES = %w[Eric Donald].freeze
 
+# Just print out stats if we type `--stats`
+def print_stats
+  stats = CSV.read(LOGFILE)[1..-1]
+  {'Download' => 6, 'Upload' => 7}.each do |name, index|
+    items = stats.map { |a| a[index].to_f }
+    item_average = items.reduce { |a, b| a + b } / items.count
+    puts "#{name} Average: #{item_average}"
+  end
+  exit
+end
+print_stats if ARGV[0] == '--stats'
+
 def mb_value(raw_value)
   mb_value = raw_value.to_f / 1_000_000
   (mb_value * 100).floor / 100.0
