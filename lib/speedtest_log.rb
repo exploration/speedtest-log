@@ -4,21 +4,24 @@ require 'CSV'
 # Run the `speedtest-cli` app, and manipulate + store the results in a logfile
 # and an in-memory object.
 class SpeedTestLog
+  # Test results
   attr_reader :results
+  # Check the initialize function for more information
   attr_accessor :attempts, :attempt_interval, :notify, :notify_usernames
 
   # These are indexes in the CSV hash returned from `speedtest-cli` that
   # correspond to the `download` and `upload` entries.
   # CSV format is:
-  # Server ID,Sponsor,Server Name,
-  #   Timestamp,Distance,Ping,Download,Upload,Share,IP Address
+  #   Server ID, Sponsor, Server Name, Timestamp, Distance, Ping,
+  #   Download, Upload, Share, IP Address
   VARIETIES = { download: 6, upload: 7 }.freeze
 
-  # @option attempts [Integer] How many tests should we run?
-  # @option attempts_interval [Integer] Seconds between test runs
-  # @option logfile [String] Location of log file
-  # @option notify [Boolean] Should we send notifications via HipChat?
-  # @option notify_usernames [Array String] List of HipChat users to notify.
+  # @param [Hash] options Some configuration options
+  # @option options [Integer] :attempts How many tests should we run?
+  # @option options [Integer] :attempts_interval Seconds between test runs
+  # @option options [String] :logfile Location of log file
+  # @option options [Boolean] :notify Should we send notifications via HipChat?
+  # @option options [Array String] :notify_usernames List of HipChat users to notify.
   def initialize(**options)
     @attempts = options.fetch(:attempts, 2)
     @attempt_interval = options.fetch(:attempt_interval, 30)
@@ -43,13 +46,6 @@ class SpeedTestLog
 
     users = @notify_usernames.map { |r| "@#{r}" }.join(' ')
     `#{dir}/bin/hipchat "#{users} #{msg}"` if @notify && value < threshold
-  end
-
-  # Convert a string to a Mb value (as a float)
-  # Return Float
-  def mb_value(raw_value)
-    mb_value = raw_value.to_f / 1_000_000
-    (mb_value * 100).floor / 100.0
   end
 
   # This will print out averages of download + upload speed
@@ -83,5 +79,10 @@ class SpeedTestLog
 
   def dir
     File.join(File.dirname(__FILE__), '..')
+  end
+
+  def mb_value(raw_value)
+    mb_value = raw_value.to_f / 1_000_000
+    (mb_value * 100).floor / 100.0
   end
 end
