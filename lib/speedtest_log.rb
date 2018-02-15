@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'CSV'
 
 # Run the `speedtest-cli` app, and manipulate + store the results in a logfile
@@ -21,7 +22,8 @@ class SpeedTestLog
   # @option options [Integer] :attempts_interval Seconds between test runs
   # @option options [String] :logfile Location of log file
   # @option options [Boolean] :notify Should we send notifications via HipChat?
-  # @option options [Array String] :notify_usernames List of HipChat users to notify.
+  # @option options [Array String] :notify_usernames List of HipChat users to
+  #   notify.
   def initialize(**options)
     @attempts = options.fetch(:attempts, 2)
     @attempt_interval = options.fetch(:attempt_interval, 30)
@@ -57,9 +59,11 @@ class SpeedTestLog
         when :logfile
           CSV.read(@logfile)[1..-1].map { |a| a[index].to_f }
         when :local
-          @results.empty? ?
-            [0] :
-            @results.map { |a| CSV.parse(a)[0][index].to_f } 
+          if @results.empty?
+            [0]
+          else
+            @results.map { |a| CSV.parse(a)[0][index].to_f }
+          end
         end
       item_average = items.reduce { |a, b| a + b } / items.count
       puts "#{name} average: #{mb_value(item_average)} Mb/sec"
