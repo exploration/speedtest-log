@@ -42,7 +42,7 @@ end
 stl = SpeedTestLog.new
 
 if ARGV[0] == '--stats'
-  puts stl.stats_printout :logfile
+  puts stl.stats_printout(:logfile).join("\n")
   exit
 end
 
