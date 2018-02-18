@@ -8,7 +8,7 @@ class SpeedTestLog
   # Test results
   attr_reader :results
   # Check the initialize function for more information
-  attr_accessor :attempts, :attempt_interval, :notify, :notify_usernames
+  attr_accessor :attempts, :attempt_interval
 
   # These are indexes in the CSV hash returned from `speedtest-cli` that
   # correspond to the `download` and `upload` entries.
@@ -21,62 +21,63 @@ class SpeedTestLog
   # @option options [Integer] :attempts How many tests should we run?
   # @option options [Integer] :attempts_interval Seconds between test runs
   # @option options [String] :logfile Location of log file
-  # @option options [Boolean] :notify Should we send notifications via HipChat?
-  # @option options [Array String] :notify_usernames List of HipChat users to
-  #   notify.
   def initialize(**options)
     @attempts = options.fetch(:attempts, 2)
     @attempt_interval = options.fetch(:attempt_interval, 30)
     @logfile = options.fetch(:logfile, "#{dir}/log/speedtest.log")
-    @notify = options.fetch(:notify, true)
-    @notify_usernames = options.fetch(:notify_usernames, %w[Eric Donald])
     @results = []
   end
 
   # Checks that the speed test results are over the designated minimum values
   # @param variety [Symbol] :download or :upload
   # @param threshold [Integer] MB value for warning that there's an error
+  # @return [Boolean] Did the test averages go below the minimum threshold?
   def check_minimum(variety, threshold)
-    return if @results.empty?
+    return :no_results if @results.empty?
 
-    values = @results.map { |a| mb_value(CSV.parse(a)[0][VARIETIES[variety]]) }
-    value = values.reduce(:+) / @attempts
+    values = parse_results(:local, variety)
+    average = mb_val(values.reduce(:+) / values.count)
 
-    msg = "Warning - #{variety} speed of #{value} Mb/sec is under the " \
-          "minimum threshold of #{threshold}."
-    puts msg if value < threshold
-
-    users = @notify_usernames.map { |r| "@#{r}" }.join(' ')
-    `#{dir}/bin/hipchat "#{users} #{msg}"` if @notify && value < threshold
+    average > threshold ? average : false
   end
 
-  # This will print out averages of download + upload speed
-  # @param location [Symbol] :logfile or :local
-  def print_stats(location = :logfile)
-    VARIETIES.each do |name, index|
-      items =
-        case location
-        when :logfile
-          CSV.read(@logfile)[1..-1].map { |a| a[index].to_f }
-        when :local
-          if @results.empty?
-            [0]
-          else
-            @results.map { |a| CSV.parse(a)[0][index].to_f }
-          end
-        end
-      item_average = items.reduce { |a, b| a + b } / items.count
-      puts "#{name} average: #{mb_value(item_average)} Mb/sec"
-    end
+  # Append speedtest results to the log
+  def log_speedtest
+    append_cmd = proc { |f| @results.each { |r| f.puts r } }
+    File.open(@logfile, 'a', &append_cmd) unless @log_append
+    @log_append = true
   end
 
   # Actually run the speed test, and log the results both to an internal array,
   # and to the logfile.
   def run_speedtest
     @results = Array.new(@attempts).map do
-      `#{dir}/bin/speedtest-cli --csv && sleep #{@attempt_interval}`
+      `'#{dir}/bin/speedtest-cli' --csv && sleep #{@attempt_interval}`
     end
-    @results.each { |r| File.open(@logfile, 'a') { |f| f.puts r } }
+  end
+
+  # This will print out averages of download + upload speed
+  # @param location [Symbol] :logfile or :local
+  def stats(location = :local)
+    VARIETIES.map do |variety, _index|
+      values = parse_results(location, variety)
+      average = values.reduce(:+) / values.count
+      {
+        variety: variety,
+        average: mb_val(average),
+        min: mb_val(values.min),
+        max: mb_val(values.max)
+      }
+    end
+  end
+
+  # Return the stats in a more human-readable format
+  def stats_printout(location = :local)
+    stats(location).map do |stat|
+      format "%s\naverage: %.2f Mb/sec\nmax: %.2f Mb/sec\n" \
+             "min: %.2f Mb/sec\n",
+             stat[:variety], stat[:average], stat[:min], stat[:max]
+    end
   end
 
   private
@@ -85,8 +86,21 @@ class SpeedTestLog
     File.join(File.dirname(__FILE__), '..')
   end
 
-  def mb_value(raw_value)
-    mb_value = raw_value.to_f / 1_000_000
-    (mb_value * 100).floor / 100.0
+  def parse_results(location, variety)
+    case location
+    when :logfile
+      CSV.read(@logfile)[1..-1].map { |a| a[VARIETIES[variety]].to_f }
+    when :local
+      if @results.empty?
+        [0]
+      else
+        @results.map { |a| CSV.parse(a)[0][VARIETIES[variety]].to_f }
+      end
+    end
+  end
+
+  def mb_val(raw_value)
+    mb_val = raw_value.to_f / 1_000_000
+    (mb_val * 100).floor / 100.0
   end
 end

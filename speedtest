@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative 'lib/speedtest_log'
+
+class Speedtest
+  def self.run(speedtest_log)
+    setup
+    speedtest_log.run_speedtest
+    speedtest_log.log_speedtest unless speedtest_log.results.empty?
+    display_stats(speedtest_log)
+    display_warnings(speedtest_log)
+  end
+
+  def self.display_stats(speedtest_log)
+    puts speedtest_log.stats_printout(:local).join("\n")
+  end
+
+  def self.display_warnings(speedtest_log)
+    varieties.each do |variety, threshold|
+      average = speedtest_log.check_minimum variety, threshold
+      msg = "Warning - #{variety} speed of #{average} Mb/sec is under the " \
+            "minimum threshold of #{threshold}."
+
+      puts msg unless average
+      `'#{dir}/bin/hipchat' "#{@usernames} #{msg}"` unless average
+    end
+  end
+
+  def self.setup
+    @download_minimum = 40
+    @upload_minimum = 20
+    @usernames = %w[Eric Donald].map { |r| "@#{r}" }.join(' ')
+  end
+
+  def self.varieties
+    { download: @download_minimum, upload: @upload_minimum }
+  end
+end
+
+stl = SpeedTestLog.new
+
+if ARGV[0] == '--stats'
+  puts stl.stats_printout :logfile
+  exit
+end
+
+Speedtest.run stl

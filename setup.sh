@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-chmod +x speedtest-log.rb
+chmod +x speedtest
 
 if [ ! -d bin ]; then
   mkdir bin
