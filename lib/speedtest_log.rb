@@ -72,6 +72,7 @@ class SpeedTestLog
   end
 
   # Return the stats in a more human-readable format
+  # rubocop:disable Style/FormatStringToken
   def stats_printout(location = :local)
     stats(location).map do |stat|
       format "%s\naverage: %.2f Mb/sec\nmax: %.2f Mb/sec\n" \
@@ -79,6 +80,7 @@ class SpeedTestLog
              stat[:variety], stat[:average], stat[:min], stat[:max]
     end
   end
+  # rubocop:enable Style/FormatStringToken
 
   private
 

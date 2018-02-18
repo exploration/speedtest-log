@@ -11,7 +11,7 @@ class TestSpeedTestLog < MiniTest::Test
   def teardown
     clear_logfile
   end
-  
+
   def test_param_passing
     speed_logger = SpeedTestLog.new(
       attempts: 3,
@@ -42,8 +42,8 @@ class TestSpeedTestLog < MiniTest::Test
 
   def test_local_stats
     expected_stats = [
-      {:variety=>:download, :average=>110.29, :min=>104.02, :max=>116.57},
-      {:variety=>:upload, :average=>73.34, :min=>73.05, :max=>73.63}
+      { variety: :download, average: 110.29, min: 104.02, max: 116.57 },
+      { variety: :upload, average: 73.34, min: 73.05, max: 73.63 }
     ]
     assert_equal expected_stats, stl.stats(:local)
   end
@@ -83,12 +83,13 @@ class TestSpeedTestLog < MiniTest::Test
     '/tmp/speedtest_log_test.log'
   end
 
+  # rubocop:disable Metrics/MethodLength
   def stl(**options)
     test_options = {
       logfile: logfile
     }.merge(options)
 
-    fake_results = [
+    _fake_results = [
       '13429,"Starry, Inc.","Boston, MA",2018-02-17T01:39:45.635670Z' \
       ',4.6833942951256855,11.644,116570392.9570789,73639233.01446815,,' \
       "108.49.177.89\n",
@@ -98,8 +99,9 @@ class TestSpeedTestLog < MiniTest::Test
     ]
 
     stl = SpeedTestLog.new(test_options)
-    stl.instance_eval('@results = fake_results', __FILE__, __LINE__)
+    stl.instance_eval('@results = _fake_results', __FILE__, __LINE__)
 
     stl
   end
+  # rubocop:enable Metrics/MethodLength
 end

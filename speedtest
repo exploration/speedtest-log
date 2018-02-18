@@ -3,6 +3,7 @@
 
 require_relative 'lib/speedtest_log'
 
+# This is a "test runner", designed to be called with 'Speedtest.run'.
 class Speedtest
   def self.run(speedtest_log)
     setup
