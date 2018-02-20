@@ -77,7 +77,7 @@ class SpeedTestLog
     stats(location).map do |stat|
       format "%s\naverage: %.2f Mb/sec\nmax: %.2f Mb/sec\n" \
              "min: %.2f Mb/sec\n",
-             stat[:variety], stat[:average], stat[:min], stat[:max]
+             stat[:variety], stat[:average], stat[:max], stat[:min]
     end
   end
   # rubocop:enable Style/FormatStringToken

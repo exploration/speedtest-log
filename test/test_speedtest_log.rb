@@ -50,9 +50,9 @@ class TestSpeedTestLog < MiniTest::Test
 
   def test_local_stats_printout
     expected_stats = [
-      "download\naverage: 110.29 Mb/sec\nmax: 104.02 Mb/sec\n" \
-        "min: 116.57 Mb/sec\n",
-      "upload\naverage: 73.34 Mb/sec\nmax: 73.05 Mb/sec\nmin: 73.63 Mb/sec\n"
+      "download\naverage: 110.29 Mb/sec\nmax: 116.57 Mb/sec\n" \
+        "min: 104.02 Mb/sec\n",
+      "upload\naverage: 73.34 Mb/sec\nmax: 73.63 Mb/sec\nmin: 73.05 Mb/sec\n"
     ]
     assert_equal expected_stats, stl.stats_printout(:local)
   end
