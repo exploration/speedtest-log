@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'CSV'
-
 # Run the `speedtest-cli` app, and manipulate + store the results in a logfile
 # and an in-memory object.
 class SpeedTestLog
